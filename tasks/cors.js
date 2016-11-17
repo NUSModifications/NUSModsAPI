@@ -26,7 +26,6 @@ module.exports = function (grunt) {
 
     async.concatSeries(options.types, (type, callback) => {
       const url = options.baseReportUrl + type + 'InfoListing.jsp';
-      console.log(url);
       helpers.requestCached(url, options, (err, webpage) => {
         if (err) {
           return callback(err);
@@ -59,18 +58,18 @@ module.exports = function (grunt) {
             // first table consist of details of the module
             const moduleDetails = $('.tableframe').first().find('tr td:nth-child(2)');
             const module = {
-              'Type': type,
-              'ModuleCode': moduleInfo.moduleCode,
-              'Department': moduleInfo.department,
-              'CorrectAsAt': timestamp,
-              'ModuleTitle': moduleDetails.eq(1).text(),
-              'ModuleDescription': moduleDetails.eq(2).text(),
-              'ExamDate': moduleDetails.eq(4).text().trim(),
-              'ModuleCredit': moduleDetails.eq(5).text(),
-              'Prerequisite': moduleDetails.eq(6).text(),
-              'Preclusion': moduleDetails.eq(7).text(),
-              'Workload': moduleDetails.eq(8).text(),
-              'Timetable': [],
+              Type: type,
+              ModuleCode: moduleInfo.moduleCode,
+              Department: moduleInfo.department,
+              CorrectAsAt: timestamp,
+              ModuleTitle: moduleDetails.eq(1).text(),
+              ModuleDescription: moduleDetails.eq(2).text(),
+              ExamDate: moduleDetails.eq(4).text().trim(),
+              ModuleCredit: moduleDetails.eq(5).text(),
+              Prerequisite: moduleDetails.eq(6).text(),
+              Preclusion: moduleDetails.eq(7).text(),
+              Workload: moduleDetails.eq(8).text(),
+              Timetable: [],
             };
 
             // get the timetable info
@@ -85,17 +84,17 @@ module.exports = function (grunt) {
               const timetableDetails = rows.map((i, el) => {
                 const row = $('td', el);
                 return {
-                  'ClassNo': row.eq(0).text().trim(),
-                  'LessonType': row.eq(1).text(),
-                  'WeekText': row.eq(2).text(),
-                  'DayText': row.eq(3).text(),
-                  'StartTime': row.eq(4).text(),
-                  'EndTime': row.eq(5).text(),
-                  'Venue': row.eq(6).text()
+                  ClassNo: row.eq(0).text().trim(),
+                  LessonType: row.eq(1).text(),
+                  WeekText: row.eq(2).text(),
+                  DayText: row.eq(3).text(),
+                  StartTime: row.eq(4).text(),
+                  EndTime: row.eq(5).text(),
+                  Venue: row.eq(6).text()
                 };
               }).get();
 
-              module['Timetable'].push(...timetableDetails);
+              module.Timetable.push(...timetableDetails);
             });
             callback(null, module);
           });
