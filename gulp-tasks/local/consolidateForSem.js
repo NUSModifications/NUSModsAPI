@@ -189,13 +189,13 @@ function consolidate(data, subLog) {
     ...Object.keys(data.bulletinModules),
     ...Object.keys(data.cors),
   ];
-  const auxilaryModuleCodes = [
+  const auxiliaryModuleCodes = [
     ...Object.keys(data.corsBiddingStats),
     ...Object.keys(data.examTimetable),
     ...Object.keys(data.moduleTimetableDelta),
     ...Object.keys(data.ivle),
   ];
-  const moduleCodesWithoutData = R.difference(auxilaryModuleCodes, mainModuleCodes);
+  const moduleCodesWithoutData = R.difference(auxiliaryModuleCodes, mainModuleCodes);
   // eslint-disable-next-line max-len
   subLog.warn(`${moduleCodesWithoutData.join(', ')} have no bulletin or cors data source and will be excluded.`);
 
