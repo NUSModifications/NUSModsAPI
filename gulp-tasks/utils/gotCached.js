@@ -47,7 +47,7 @@ async function gotCached(urlStr, config) {
   const isCachedFileValid = modifiedTime &&
     (maxCacheAge === -1 || modifiedTime > Date.now() - (maxCacheAge * 1000));
   if (isCachedFileValid) {
-    return await returnCached();
+    return returnCached();
   }
 
   const options = {
@@ -73,7 +73,7 @@ async function gotCached(urlStr, config) {
     return body;
   } catch (error) {
     if (error.statusCode === 304) {
-      return await returnCached();
+      return returnCached();
     }
     if (error.statusCode) {
       throw new Error(`got http ${error.statusCode} while fetching ${urlStr}`);

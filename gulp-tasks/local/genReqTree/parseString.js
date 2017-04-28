@@ -15,20 +15,20 @@ import { OPERATORS, MODULE_REGEX, AND_OR_REGEX } from './constants';
  * https://github.com/SAP/chevrotain
  */
 
-const Module = createToken({ name: "Module", pattern: MODULE_REGEX});
-const And = createToken({ name: 'And', pattern: 'and'});
-const Or = createToken({ name: 'Or', pattern: 'or'});
+const Module = createToken({ name: 'Module', pattern: MODULE_REGEX });
+const And = createToken({ name: 'And', pattern: 'and' });
+const Or = createToken({ name: 'Or', pattern: 'or' });
 
 const LeftBracket = createToken({ name: 'LeftBracket', pattern: /\(/ });
 const RightBracket = createToken({ name: 'RightBracket', pattern: /\)/ });
 
-const WhiteSpace = createToken({ 
-  name: 'WhiteSpace', 
+const WhiteSpace = createToken({
+  name: 'WhiteSpace',
   pattern: /\s+/,
   group: Lexer.SKIPPED,
 });
-const IrrelevantWord = createToken({ 
-  name: 'IrrelevantWord', 
+const IrrelevantWord = createToken({
+  name: 'IrrelevantWord',
   pattern: /[^\s()]+/,
   group: Lexer.SKIPPED,
 });
