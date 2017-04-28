@@ -1,5 +1,5 @@
 import path from 'path';
-import fs from 'fs-promise';
+import fs from 'fs-extra';
 import url from 'url';
 import got from 'got';
 import parse5 from 'parse5';
