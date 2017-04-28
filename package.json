@@ -81,7 +81,7 @@
     "testPathIgnorePatterns": [
       ".eslintrc.js"
     ],
-    "testPathDirs": [
+    "roots": [
       "<rootDir>/__tests__"
     ]
   }
