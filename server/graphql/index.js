@@ -1,5 +1,7 @@
 import { makeExecutableSchema } from 'graphql-tools';
 
+import log from '../util/log';
+
 const Schema = `
 type Module {
   id: Int!
@@ -44,12 +46,18 @@ const Resolvers = {
     module(root, { code }) {
       return;
     },
-  },
+  }
+};
+
+const subLog = log.child({ path: 'graphql' });
+const logger = {
+  log: e => subLog.error(e),
 };
 
 const schema = makeExecutableSchema({
   typeDefs: Schema,
   resolvers: Resolvers,
+  logger,
 });
 
 export default schema;
