@@ -1,4 +1,5 @@
 import path from 'path';
+import R from 'ramda';
 
 const fs = jest.genMockFromModule('fs-extra');
 
@@ -6,24 +7,31 @@ const fs = jest.genMockFromModule('fs-extra');
 // what the files on the "mock" filesystem should look like when any of the
 // `fs` APIs are used.
 let mockFiles = {};
-function setMockFiles(newMockFiles) {
-  mockFiles = {};
-  Object.keys(newMockFiles).forEach((file) => {
-    const dir = path.dirname(file);
-    if (!mockFiles[dir]) {
-      mockFiles[dir] = [];
-    }
-    mockFiles[dir].push(path.basename(file));
-  });
-}
+fs.setMock = (mockFileSystem) => {
+  mockFiles = mockFileSystem;
+};
 
 // A custom version of `readdir` that reads from the special mocked out
-// file list set via setMockFiles
-async function readdir(directoryPath) {
-  return mockFiles[directoryPath] || [];
-}
+// file list set via setMock
+fs.readdir = async (directoryPath) => {
+  const pathArr = directoryPath.split(path.sep);
+  return Object.keys(R.path(pathArr, mockFiles)) || [];
+};
 
-fs.setMockFiles = setMockFiles;
-fs.readdir = readdir;
+// A custom version of `readJson` that reads from the special mocked out
+// file list set via setMock
+
+/**
+ * A custom version of `readJson` that reads from the mocked out file system.
+ * Reads json from string, error otherwise.
+ */
+fs.readJson = async (directoryPath) => {
+  const pathArr = directoryPath.split(path.sep);
+  try {
+    return JSON.parse(R.path(pathArr, mockFiles));
+  } catch (error) {
+    return Promise.reject(error);
+  }
+};
 
 module.exports = fs;
