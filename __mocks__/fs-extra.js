@@ -11,12 +11,16 @@ fs.setMock = (mockFileSystem) => {
   mockFiles = mockFileSystem;
 };
 
-// A custom version of `readdir` that reads from the special mocked out
+// A custom version of `readdirSync` that reads from the special mocked out
 // file list set via setMock
-fs.readdir = async (directoryPath) => {
+fs.readdirSync = (directoryPath) => {
   const pathArr = directoryPath.split(path.sep);
   return Object.keys(R.path(pathArr, mockFiles)) || [];
 };
+
+// A custom version of `readdir` that reads from the special mocked out
+// file list set via setMock
+fs.readdir = async directoryPath => fs.readdirSync(directoryPath);
 
 // A custom version of `readJson` that reads from the special mocked out
 // file list set via setMock
@@ -32,6 +36,15 @@ fs.readJson = async (directoryPath) => {
   } catch (error) {
     return Promise.reject(error);
   }
+};
+
+/**
+ * A custom version of `readJsonSync` that reads from the mocked out file system.
+ * Reads json from string, error otherwise.
+ */
+fs.readJsonSync = (directoryPath) => {
+  const pathArr = directoryPath.split(path.sep);
+  return JSON.parse(R.path(pathArr, mockFiles));
 };
 
 module.exports = fs;
