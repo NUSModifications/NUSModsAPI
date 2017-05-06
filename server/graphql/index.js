@@ -1,6 +1,11 @@
 import { makeExecutableSchema } from 'graphql-tools';
+import bunyan from 'bunyan';
+import camelize from 'underscore.string/camelize';
 
-import log from '../util/log';
+import { walkJsonDirSync } from '../util/walkDir';
+import config from '../../config';
+
+const log = bunyan.createLogger({ name: 'graphql' });
 
 const Schema = `
 type Module {
@@ -20,6 +25,10 @@ type Module {
   timetable: [Lesson]
 }
 
+type History {
+
+}
+
 type Lesson {
   id: Int!
   classNo: String
@@ -33,6 +42,7 @@ type Lesson {
 
 # the schema allows the following query:
 type Query {
+  modules(acadYear: String): String
   module(code: String): Module
 }
 
@@ -41,12 +51,22 @@ schema {
 }
 `;
 
+function camelizeAllKeys(data) {
+  camelize(data, true);
+}
+const apiFolder = config.defaults.destFolder;
+const modulesFile = config.consolidate.destFileName;
+const data = walkJsonDirSync(apiFolder, modulesFile);
+
 const Resolvers = {
   Query: {
-    module(root, { code }) {
-      return;
+    modules(root, { acadYear }) {
+      log.info({ acadYear });
+      log.info(Object.keys(data));
+      log.info(data[acadYear]);
+      return 'data[acadYear]';
     },
-  }
+  },
 };
 
 const subLog = log.child({ path: 'graphql' });
