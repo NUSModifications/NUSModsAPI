@@ -9,11 +9,13 @@ const log = bunyan.createLogger({ name: 'graphql' });
 
 const Schema = `
 type Module {
-  id: Int!
   code: String!
   title: String!
   department: String
   description: String
+}
+
+type ModuleInfo {
   credit: Float
   workload: String
   prerequisite: String
@@ -23,10 +25,6 @@ type Module {
   examDuration: String
   examVenue: String
   timetable: [Lesson]
-}
-
-type History {
-
 }
 
 type Lesson {
@@ -42,7 +40,7 @@ type Lesson {
 
 # the schema allows the following query:
 type Query {
-  modules(acadYear: String): String
+  modules(acadYear: String): [Module]
   module(code: String): Module
 }
 
