@@ -8,9 +8,9 @@
     "email": "mods@nusmods.com"
   },
   "scripts": {
-    "dev": "cross-env NODE_ENV=development nodemon server --exec babel-node --watch server | bunyan -o short",
+    "dev": "cross-env NODE_ENV=development nodemon server --exec babel-node --watch server | bunyan -o short --color",
     "start": "cross-env NODE_ENV=production gulp | bunyan -o short",
-    "start:dev": "cross-env NODE_ENV=development gulp | bunyan -l debug -o short",
+    "start:dev": "cross-env NODE_ENV=development gulp | bunyan -l debug -o short --color",
     "test": "jest --coverage",
     "test:watch": "jest --watch",
     "lint": "eslint gulpfile.babel.js gulp-tasks server",
