@@ -3,6 +3,7 @@ import bunyan from 'bunyan';
 import camelize from 'underscore.string/camelize';
 
 import { walkJsonDirSync } from '../util/walkDir';
+import mapKeysDeep from '../util/mapKeysDeep';
 import config from '../../config';
 
 const log = bunyan.createLogger({ name: 'graphql' });
@@ -49,12 +50,10 @@ schema {
 }
 `;
 
-function camelizeAllKeys(data) {
-  camelize(data, true);
-}
 const apiFolder = config.defaults.destFolder;
 const modulesFile = config.consolidate.destFileName;
-const data = walkJsonDirSync(apiFolder, modulesFile);
+const camelizeAllKeys = mapKeysDeep(obj => camelize(obj, true));
+const data = camelizeAllKeys(walkJsonDirSync(apiFolder, modulesFile));
 
 const Resolvers = {
   Query: {
