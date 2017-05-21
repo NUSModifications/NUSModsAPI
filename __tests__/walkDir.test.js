@@ -1,3 +1,4 @@
+import path from 'path';
 import fs from 'fs-extra';
 import { walkJsonDir, walkJsonDirSync } from '../server/util/walkDir';
 
@@ -22,7 +23,8 @@ describe('walkJsonDir', () => {
       '2016-2017': ['test'],
       '2017-2018': ['test1'],
     };
-    expect(await walkJsonDir('app/api', 'modules.json')).toEqual(expected);
+    const apiPath = path.join('app', 'api');
+    expect(await walkJsonDir(apiPath, 'modules.json')).toEqual(expected);
   });
 });
 
@@ -45,6 +47,7 @@ describe('walkJsonDirSync', () => {
       '2016-2017': ['test'],
       '2017-2018': ['test1'],
     };
-    expect(walkJsonDirSync('app/api', 'modules.json')).toEqual(expected);
+    const apiPath = path.join('app', 'api');
+    expect(walkJsonDirSync(apiPath, 'modules.json')).toEqual(expected);
   });
 });
