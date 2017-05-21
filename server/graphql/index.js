@@ -11,13 +11,16 @@ type Module {
   title: String!
   department: String
   description: String
-}
-
-type ModuleInfo {
   credit: Float
   workload: String
   prerequisite: String
   corequisite: String
+  corsBiddingStats: [CorsBiddingStats]
+  history: [ModuleInfo]
+}
+
+type ModuleInfo {
+  semester: Int
   examDate: String
   examOpenBook: Boolean
   examDuration: String
@@ -25,8 +28,21 @@ type ModuleInfo {
   timetable: [Lesson]
 }
 
+type CorsBiddingStats {
+  quota: Int
+  bidders: Int
+  lowestBid: Int
+  lowestSuccessfulBid: Int
+  highestBid: Int
+  faculty: String
+  studentAcctType: String # TODO: Convert to ENUM
+  acadYear: String
+  semester: Int
+  round: String # TODO: Convert to ENUM
+  group: String
+}
+
 type Lesson {
-  id: Int!
   classNo: String
   lessonType: String
   weekText: String
