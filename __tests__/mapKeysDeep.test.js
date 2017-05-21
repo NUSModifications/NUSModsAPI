@@ -5,7 +5,16 @@ describe('mapKeysDeep', () => {
 
   const testString = 'testString';
 
-  it('should return string without modification', () => {
+  it('should return function without modification', () => {
+    const func = () => {};
+    expect(appendXToKeys(func)).toBe(func);
+  });
+
+  it('should return null without modification', () => {
+    expect(appendXToKeys(null)).toBeNull();
+  });
+
+  it('should return strings without modification', () => {
     expect(appendXToKeys(testString)).toBe(testString);
   });
 

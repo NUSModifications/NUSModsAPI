@@ -1,7 +1,8 @@
-import R from 'ramda';
+import _ from 'lodash';
 
 /**
  * Recursively traverses the object and applies a function to all the keys.
+ * Does not handle cyclic references.
  * This function is curried.
  * @param {* Function} func
  * @param {* Object} value
@@ -10,9 +11,7 @@ function mapKeysDeep(func, value) {
   if (Array.isArray(value)) {
     return value.map(innerContent => mapKeysDeep(func, innerContent));
   }
-  const type = typeof value;
-  const isObject = value != null && (type === 'object' || type === 'function');
-  if (isObject) {
+  if (_.isObjectLike(value)) {
     const obj = {};
     Object.entries(value).forEach(([key, objValue]) => {
       obj[func(key)] = mapKeysDeep(func, objValue);
@@ -22,4 +21,4 @@ function mapKeysDeep(func, value) {
   return value; // all other cases
 }
 
-export default R.curry(mapKeysDeep);
+export default _.curry(mapKeysDeep);
