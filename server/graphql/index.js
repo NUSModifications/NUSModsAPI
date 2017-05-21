@@ -1,10 +1,7 @@
 import { makeExecutableSchema } from 'graphql-tools';
 import bunyan from 'bunyan';
-import camelize from 'underscore.string/camelize';
 
-import { walkJsonDirSync } from '../util/walkDir';
-import mapKeysDeep from '../util/mapKeysDeep';
-import config from '../../config';
+import jsonData from './jsonData';
 
 const log = bunyan.createLogger({ name: 'graphql' });
 
@@ -41,8 +38,8 @@ type Lesson {
 
 # the schema allows the following query:
 type Query {
-  modules(acadYear: String): [Module]
-  module(code: String): Module
+  modules(acadYear: String!): [Module]
+  module(acadYear: String!, code: String!): Module
 }
 
 schema {
@@ -50,18 +47,13 @@ schema {
 }
 `;
 
-const apiFolder = config.defaults.destFolder;
-const modulesFile = config.consolidate.destFileName;
-const camelizeAllKeys = mapKeysDeep(obj => camelize(obj, true));
-const data = camelizeAllKeys(walkJsonDirSync(apiFolder, modulesFile));
-
 const Resolvers = {
   Query: {
     modules(root, { acadYear }) {
-      log.info({ acadYear });
-      log.info(Object.keys(data));
-      log.info(data[acadYear]);
-      return 'data[acadYear]';
+      return jsonData[acadYear];
+    },
+    module(root, { acadYear, code }) {
+      return jsonData[acadYear][code];
     },
   },
 };
