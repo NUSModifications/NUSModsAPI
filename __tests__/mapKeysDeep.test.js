@@ -6,7 +6,11 @@ describe('mapKeysDeep', () => {
   const testString = 'testString';
 
   it('should return string without modification', () => {
-    expect(appendXToKeys(testString)).toEqual(testString);
+    expect(appendXToKeys(testString)).toBe(testString);
+  });
+
+  it('should return numbers without modification', () => {
+    expect(appendXToKeys(1)).toBe(1);
   });
 
   it('should map over array of objects', () => {

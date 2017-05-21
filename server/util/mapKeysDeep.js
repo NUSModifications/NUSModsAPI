@@ -4,19 +4,22 @@ import R from 'ramda';
  * Recursively traverses the object and applies a function to all the keys.
  * This function is curried.
  * @param {* Function} func
- * @param {* Object} obj
+ * @param {* Object} value
  */
-function mapKeysDeep(func, obj) {
-  if (typeof obj === 'string') {
-    return obj;
-  } else if (Array.isArray(obj)) {
-    return obj.map(innerContent => mapKeysDeep(func, innerContent));
+function mapKeysDeep(func, value) {
+  if (Array.isArray(value)) {
+    return value.map(innerContent => mapKeysDeep(func, innerContent));
   }
-  const newObj = {};
-  Object.entries(obj).forEach(([key, value]) => {
-    newObj[func(key)] = mapKeysDeep(func, value);
-  });
-  return newObj;
+  const type = typeof value;
+  const isObject = value != null && (type === 'object' || type === 'function');
+  if (isObject) {
+    const obj = {};
+    Object.entries(value).forEach(([key, objValue]) => {
+      obj[func(key)] = mapKeysDeep(func, objValue);
+    });
+    return obj;
+  }
+  return value; // all other cases
 }
 
 export default R.curry(mapKeysDeep);
