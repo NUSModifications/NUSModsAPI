@@ -1,4 +1,6 @@
-// Update with your config settings.
+require('dotenv').config();
+
+const DEBUG_FLAG = JSON.parse(process.env.DB_DEBUG) || false;
 
 module.exports = {
 
@@ -8,7 +10,7 @@ module.exports = {
     connection: {
       filename: './dev.sqlite3',
     },
-    debug: true,
+    debug: DEBUG_FLAG,
   },
 
   staging: {
