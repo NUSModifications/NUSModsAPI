@@ -1,32 +1,35 @@
 exports.up = (knex, Promise) => {
   const schoolsTable = knex.schema.createTable('schools', (table) => {
-    table.uuid('id').primary();
-    table.string('name').unique();
+    table.increments('id');
+    table.string('name').notNullable().unique();
     table.string('abbreviation', 32);
   });
 
   const departmentsTable = knex.schema.createTable('departments', (table) => {
-    table.index(['school_id', 'name'], 'id').primary();
+    table.uuid('id').notNullable().primary();
     table
-      .uuid('school_id')
+      .integer('school_id')
       .notNullable()
       .references('id')
       .inTable('schools')
       .onDelete('CASCADE')
       .onUpdate('CASCADE');
     table.string('name').notNullable();
+    table.unique(['school_id', 'name']);
   });
 
   const venuesTable = knex.schema.createTable('venues', (table) => {
-    table.uuid('id').primary();
     table
-      .uuid('department_id')
+      .integer('school_id')
+      .notNullable()
       .references('id')
-      .inTable('departments')
-      .onDelete('SET NULL')
+      .inTable('schools')
+      .onDelete('CASCADE')
       .onUpdate('CASCADE');
     table.string('name').notNullable();
     table.string('type');
+    table.string('owned_by');
+    table.primary(['school_id', 'name']);
   });
 
   return Promise.all([schoolsTable, departmentsTable, venuesTable]);
