@@ -1,7 +1,6 @@
 import path from 'path';
 import fs from 'fs-extra';
 import { URL, URLSearchParams } from 'url';
-import normalizeUrl from 'normalize-url';
 import sanitizeFilename from 'sanitize-filename';
 import axios from 'axios';
 import bunyan from 'bunyan';
@@ -14,28 +13,41 @@ const log = bunyan.createLogger({
 });
 
 /**
- * Converts url string to equivalent valid filename.
+ * Converts axios request configuration to equivalent valid filename.
  */
-function getCacheFilePath(urlStr, params) {
-  const cachePath = config.defaults.cachePath;
-  const url = new URL(urlStr);
-  console.log(url);
-  const normalizedUrl = normalizeUrl(urlStr, { removeDirectoryIndex: true });
+function getCacheFilePath(requestConfig) {
+  const { baseURL, url, params } = requestConfig;
   // https://nodejs.org/docs/latest/api/url.html#url_url_strings_and_url_objects
-  const { hostname, pathname, search } = new URL(normalizedUrl);
-  const pathArray = [cachePath, hostname, pathname];
+  const { hostname, pathname, searchParams, href } = new URL(url, baseURL);
 
-  if (!search) {
-    pathArray.push('index.html');
+  const keyValuePairs = new Set();
+  const addKeyValuePair = (value, key) => {
+    keyValuePairs.add(`${key}=${value}`);
+  };
+  // URLSearchParams are iterables, not arrays (so no map, filter, etc)
+  searchParams.forEach(addKeyValuePair);
+  new URLSearchParams(params).forEach(addKeyValuePair);
+
+  let filename = '';
+  if (keyValuePairs.size) {
+    filename = sanitizeFilename(Array.from(keyValuePairs).sort().join('&'));
+    if (filename === '') {
+      throw new Error(`Invalid filename for url ${href}`);
+    }
   } else {
-    const readableSearchString = decodeURIComponent(search);
-    pathArray.push(sanitizeFilename(readableSearchString));
+    filename = 'index.html';
   }
-  return path.join(...pathArray);
+
+  return path.join(
+    config.defaults.cachePath,
+    hostname.replace(/^www\./, ''),
+    pathname.replace(/\/index\.[a-z]+$/, ''),
+    filename,
+  );
 }
 
 /**
- * Gets the time the file was last modified if it exists, null otherwise.
+ * Gets the time the file was last modified if it exists, Infinity otherwise.
  */
 async function getFileModifiedTime(cachedPath, urlStr) {
   try {
@@ -47,31 +59,29 @@ async function getFileModifiedTime(cachedPath, urlStr) {
   } catch (err) {
     log.debug(`no cached file for ${urlStr}`);
   }
-  return null;
+  return Infinity;
 }
 
 const HttpService = axios.create({
   validateStatus: status => status >= 200 && (status < 300 && status !== 304),
 });
 
+/**
+ * Return cached response when
+ * 1) Cache file exists
+ * 2) Cache file is within set cache limit
+ *
+ */
 HttpService.interceptors.request.use(async (request) => {
   // Only cache GET requests
   if (request.method === 'get') {
-    let url = request.url;
-    if (request.params) {
-      url += `?${new URLSearchParams(request.params).toString()}`;
-    }
-
     const { maxCacheAge = config.defaults.maxCacheAge } = request;
 
+    const cachedFilePath = getCacheFilePath(request);
+    const modifiedTime = await getFileModifiedTime(cachedFilePath, request.url);
 
-    const cachedFilePath = getCacheFilePath(url);
-    const modifiedTime = await getFileModifiedTime(cachedFilePath, url);
-
-    const isCachedFileValid = modifiedTime && modifiedTime > Date.now() - maxCacheAge * 1000;
-
-    if (maxCacheAge === -1 || isCachedFileValid) {
-      request.isCached = true;
+    request.isCached = (modifiedTime - Date.now()) < maxCacheAge;
+    if (request.isCached) {
       request.data = await fs.readFile(cachedFilePath, 'utf8');
       // Set the request adapter to send the cached response and prevent the request from actually running
       request.adapter = () => Promise.resolve({
@@ -87,27 +97,17 @@ HttpService.interceptors.request.use(async (request) => {
   return request;
 });
 
+/**
+ * Cache response when
+ * 1) Not cached already
+ */
 HttpService.interceptors.response.use((response) => {
-  const { params, isCached = false } = response.config;
-  let { url } = response.config;
-  if (params) {
-    url += `?${new URLSearchParams(params).toString()}`;
+  if (!response.config.isCached) {
+    const cachedFilePath = getCacheFilePath(response.config);
+    fs.outputFile(cachedFilePath, response.data);
   }
-  if (isCached) {
-    return response;
-  }
-  const cachedFilePath = getCacheFilePath(url);
-  fs.outputFile(cachedFilePath, response.data);
   return response;
 });
 
 export default HttpService;
 export { getCacheFilePath, getFileModifiedTime };
-
-HttpService('https://www.example.com', { params: { x: 'ouch' }, lel: 'lol' })
-  .then((res) => {
-    console.log(res.data.slice(0, 15));
-  })
-  .catch((error) => {
-    console.error(error);
-  });
