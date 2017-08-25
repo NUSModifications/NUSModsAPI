@@ -4,6 +4,7 @@ import fs from 'fs-extra';
 import BaseTask from './BaseTask';
 
 jest.mock('fs-extra');
+jest.unmock('bunyan');
 
 describe('BaseTask', () => {
   let base;

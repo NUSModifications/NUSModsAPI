@@ -1,8 +1,11 @@
 // @flow
 import bunyan from 'bunyan';
+import axios from 'axios';
+import bluebird from 'bluebird';
 import fs from 'fs-extra';
 
-import config from '../config';
+import db from '../db';
+import config from '../../config';
 
 /**
  * Base class for all scraping tasks, contains useful utilities
@@ -16,6 +19,12 @@ export default class BaseTask {
       name: this.constructor.name,
       level: process.env.NODE_ENV === 'production' ? bunyan.INFO : bunyan.DEBUG,
     });
+    this.http = axios;
+    this.db = db;
+  }
+
+  getTransaction() {
+    return bluebird.promisify(this.db.transaction);
   }
 
   /**
