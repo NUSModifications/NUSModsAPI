@@ -47,7 +47,7 @@ function getCacheFilePath(requestConfig) {
 }
 
 /**
- * Gets the time the file was last modified if it exists, Infinity otherwise.
+ * Gets the time the file was last modified if it exists, null otherwise.
  */
 async function getFileModifiedTime(cachedPath, urlStr) {
   try {
@@ -59,18 +59,17 @@ async function getFileModifiedTime(cachedPath, urlStr) {
   } catch (err) {
     log.debug(`no cached file for ${urlStr}`);
   }
-  return Infinity;
+  return null;
 }
 
 const HttpService = axios.create({
-  validateStatus: status => status >= 200 && (status < 300 && status !== 304),
+  validateStatus: status => (status >= 200 && status < 300) || status === 304,
 });
 
 /**
- * Return cached response when
+ * Intercepts and returns cached response when
  * 1) Cache file exists
  * 2) Cache file is within set cache limit
- *
  */
 HttpService.interceptors.request.use(async (request) => {
   // Only cache GET requests
@@ -80,30 +79,36 @@ HttpService.interceptors.request.use(async (request) => {
     const cachedFilePath = getCacheFilePath(request);
     const modifiedTime = await getFileModifiedTime(cachedFilePath, request.url);
 
-    request.isCached = (modifiedTime - Date.now()) < maxCacheAge;
+    request.isCached = Date.now() - modifiedTime < maxCacheAge;
     if (request.isCached) {
       request.data = await fs.readFile(cachedFilePath, 'utf8');
-      // Set the request adapter to send the cached response and prevent the request from actually running
-      request.adapter = () => Promise.resolve({
-        data: request.data,
-        status: request.status,
-        statusText: request.statusText,
-        headers: request.headers,
-        config: request,
-        request,
-      });
+      // Set the request adapter to send the cached response and
+      // prevent the request from actually running
+      request.adapter = () =>
+        Promise.resolve({
+          data: request.data,
+          status: request.status,
+          statusText: request.statusText,
+          headers: request.headers,
+          config: request,
+          request,
+        });
+    } else if (modifiedTime instanceof Date) {
+      request.headers['if-modified-since'] = modifiedTime.toUTCString();
     }
   }
   return request;
 });
 
 /**
- * Cache response when
- * 1) Not cached already
+ * Cache response when it is not already cached.
+ * Also handles 304 Not Modified scenarios.
  */
-HttpService.interceptors.response.use((response) => {
-  if (!response.config.isCached) {
-    const cachedFilePath = getCacheFilePath(response.config);
+HttpService.interceptors.response.use(async (response) => {
+  const cachedFilePath = getCacheFilePath(response.config);
+  if (response.status === 304) {
+    response.data = await fs.readFile(cachedFilePath, 'utf8');
+  } else if (response.config.method === 'get' && !response.config.isCached) {
     fs.outputFile(cachedFilePath, response.data);
   }
   return response;
