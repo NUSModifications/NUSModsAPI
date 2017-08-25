@@ -36,12 +36,14 @@ exports.up = (knex, Promise) => {
 };
 
 exports.down = (knex, Promise) => {
-  const tables = ['Users'];
+  const tables = ['schools', 'departments', 'venues'];
   return Promise.all(
     tables.map(table =>
-      knex.schema.dropTableIfExists(table).then(() => {
-        console.log(`${table} was dropped`);
-      }),
+      knex.schema.dropTableIfExists(table).then(() => table),
     ),
-  );
+  ).then((tbls) => {
+    if (process.env.NODE_ENV !== 'test') {
+      console.log(`tables ${tbls.join(', ')} was dropped`);
+    }
+  });
 };

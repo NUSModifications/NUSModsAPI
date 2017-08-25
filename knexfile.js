@@ -13,6 +13,15 @@ module.exports = {
     debug: DEBUG_FLAG,
   },
 
+  test: {
+    client: 'sqlite3',
+    useNullAsDefault: true,
+    connection: {
+      filename: ':memory:',
+    },
+    debug: DEBUG_FLAG,
+  },
+
   staging: {
     client: 'sqlite3',
     useNullAsDefault: true,
