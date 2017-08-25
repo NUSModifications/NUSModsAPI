@@ -1,6 +1,6 @@
 require('dotenv').config();
 
-const DEBUG_FLAG = JSON.parse(process.env.DB_DEBUG) || false;
+const DEBUG_FLAG = JSON.parse(process.env.DB_DEBUG || false);
 
 module.exports = {
 
