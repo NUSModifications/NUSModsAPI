@@ -1,10 +1,10 @@
 // @flow
 import bunyan from 'bunyan';
-import axios from 'axios';
 import bluebird from 'bluebird';
 import fs from 'fs-extra';
 
 import db from '../db';
+import http from './HttpService';
 import config from '../../config';
 
 /**
@@ -19,7 +19,7 @@ export default class BaseTask {
       name: this.constructor.name,
       level: process.env.NODE_ENV === 'production' ? bunyan.INFO : bunyan.DEBUG,
     });
-    this.http = axios;
+    this.http = http;
     this.db = db;
   }
 
