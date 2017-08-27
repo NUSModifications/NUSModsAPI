@@ -1,12 +1,12 @@
 exports.up = (knex, Promise) => {
   const schoolsTable = knex.schema.createTable('schools', (table) => {
-    table.increments('id');
+    table.increments('id').notNullable().primary();
     table.string('name').notNullable().unique();
     table.string('abbreviation', 32);
   });
 
   const departmentsTable = knex.schema.createTable('departments', (table) => {
-    table.uuid('id').notNullable().primary();
+    table.increments('id').notNullable().primary();
     table
       .integer('school_id')
       .notNullable()
@@ -19,6 +19,7 @@ exports.up = (knex, Promise) => {
   });
 
   const venuesTable = knex.schema.createTable('venues', (table) => {
+    table.increments('id').notNullable().primary();
     table
       .integer('school_id')
       .notNullable()
@@ -29,7 +30,7 @@ exports.up = (knex, Promise) => {
     table.string('name').notNullable();
     table.string('type');
     table.string('owned_by');
-    table.primary(['school_id', 'name']);
+    table.unique(['school_id', 'name']);
   });
 
   return Promise.all([schoolsTable, departmentsTable, venuesTable]);

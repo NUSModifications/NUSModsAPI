@@ -1,25 +1,25 @@
-// @flow
 import R from 'ramda';
 
 import BaseTask from './BaseTask';
 
 const NUS_API_URL = 'http://nuslivinglab.nus.edu.sg/api_dev/api/Dept';
+const FIELDS = ['name', 'type', 'owned_by'];
 const SCHOOL_ID = { school_id: 1 };
-const MAX_INSERT_SIZE = 999 / 4;
+// Prevent "Too many SQL variable errors thrown by SQLite"
+// Default by SQLite is 999. Since we have 4 variables per row...
+const MAX_INSERT_SIZE = Math.floor(999 / 4);
 
 /**
- * Outputs venue data for the school for one acad year.
- * By default outputs to:
- *   - venuesRaw.json
+ * Scrapes and saves venue data for the school.
  */
 export default class VenuesScraper extends BaseTask {
-  async process(existingRows, currentRows) {
+  async save(existingRows, currentRows) {
     if (!currentRows.length) {
       throw new Error('No data found');
     }
     const transaction = await this.getTransaction();
 
-    const map = R.indexBy('name', currentRows);
+    const map = R.indexBy(R.prop('name'), currentRows);
 
     const transactions = [];
     const transact = ({ name }) => this.db.table('venues').transacting(transaction).where({ name });
@@ -50,10 +50,10 @@ export default class VenuesScraper extends BaseTask {
         output: 'json',
       },
     });
-    const currentVenues = response.data.map(this.convertToRow);
-    const existingVenues = await this.db.table('venues').where(SCHOOL_ID).select();
+    const currentVenues = response.data.map(datum => this.convertToRow(datum));
+    const existingVenues = await this.db.table('venues').where(SCHOOL_ID).select(FIELDS);
 
-    return this.process(existingVenues, currentVenues);
+    return this.save(existingVenues, currentVenues);
   }
 
   convertToRow(venue) {
@@ -63,7 +63,7 @@ export default class VenuesScraper extends BaseTask {
     // can be owned by clubs and external vendors
     const { roomcode: name, roomname: type, dept: owned_by, ...extraProps } = venue;
 
-    if (R.isEmpty(extraProps)) {
+    if (!R.isEmpty(extraProps)) {
       this.log.warn('Found extra properties', extraProps);
     }
 
@@ -75,6 +75,3 @@ export default class VenuesScraper extends BaseTask {
     };
   }
 }
-
-const scraper = new VenuesScraper();
-scraper.scrape().then(console.log).catch(console.error);
