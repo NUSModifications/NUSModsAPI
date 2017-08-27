@@ -4,6 +4,7 @@ import { URL, URLSearchParams } from 'url';
 import sanitizeFilename from 'sanitize-filename';
 import axios from 'axios';
 import bunyan from 'bunyan';
+import { isString } from 'lodash';
 
 import config from '../../config';
 
@@ -91,7 +92,6 @@ HttpService.interceptors.request.use(async (request) => {
           statusText: request.statusText,
           headers: request.headers,
           config: request,
-          request,
         });
     } else if (modifiedTime instanceof Date) {
       request.headers['if-modified-since'] = modifiedTime.toUTCString();
@@ -109,7 +109,8 @@ HttpService.interceptors.response.use(async (response) => {
   if (response.status === 304) {
     response.data = await fs.readFile(cachedFilePath, 'utf8');
   } else if (response.config.method === 'get' && !response.config.isCached) {
-    fs.outputFile(cachedFilePath, response.data);
+    const outputFunc = isString(response.data) ? fs.outputFile : fs.outputJson;
+    outputFunc(cachedFilePath, response.data);
   }
   return response;
 });

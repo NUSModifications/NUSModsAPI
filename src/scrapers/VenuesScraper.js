@@ -1,11 +1,10 @@
 // @flow
-import querystring from 'querystring';
 import R from 'ramda';
 
 import BaseTask from './BaseTask';
 
-const NUS_API_URL = 'http://nuslivinglab.nus.edu.sg/api_dev/api/';
-const FIELDS = [];
+const NUS_API_URL = 'http://nuslivinglab.nus.edu.sg/api_dev/api/Dept';
+const SCHOOL_ID = { school_id: 1 };
 const MAX_INSERT_SIZE = 999 / 4;
 
 /**
@@ -20,10 +19,7 @@ export default class VenuesScraper extends BaseTask {
     }
     const transaction = await this.getTransaction();
 
-    const map = {};
-    currentRows.forEach((row) => {
-      map[row.name] = row;
-    });
+    const map = R.indexBy('name', currentRows);
 
     const transactions = [];
     const transact = ({ name }) => this.db.table('venues').transacting(transaction).where({ name });
@@ -48,14 +44,14 @@ export default class VenuesScraper extends BaseTask {
   }
 
   async scrape() {
-    const query = querystring.stringify({
-      name: '',
-      output: 'json',
+    const response = await this.http.get(NUS_API_URL, {
+      params: {
+        name: '',
+        output: 'json',
+      },
     });
-    const url = `${NUS_API_URL}Dept?${query}`;
-    const response = await this.http.get(url);
     const currentVenues = response.data.map(this.convertToRow);
-    const existingVenues = await this.db.table('venues').where({ school_id: 1 }).select(FIELDS);
+    const existingVenues = await this.db.table('venues').where(SCHOOL_ID).select();
 
     return this.process(existingVenues, currentVenues);
   }
@@ -67,15 +63,18 @@ export default class VenuesScraper extends BaseTask {
     // can be owned by clubs and external vendors
     const { roomcode: name, roomname: type, dept: owned_by, ...extraProps } = venue;
 
-    if (Object.keys(extraProps).length) {
+    if (R.isEmpty(extraProps)) {
       this.log.warn('Found extra properties', extraProps);
     }
 
     return {
-      school_id: 1,
+      ...SCHOOL_ID,
       name,
       type,
       owned_by,
     };
   }
 }
+
+const scraper = new VenuesScraper();
+scraper.scrape().then(console.log).catch(console.error);

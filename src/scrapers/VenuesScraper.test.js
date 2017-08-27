@@ -16,8 +16,8 @@ describe('VenuesScraper', () => {
 
     it('should insert all venues if db is empty', async () => {
       const testData = [
-        { school_id: 1, name: 'test', type: 'room', owned_by: 'me' },
-        { school_id: 1, name: 'test1', type: 'room', owned_by: 'me' },
+        { school_id: 1, name: 'test', type: 'room', ownedBy: 'me' },
+        { school_id: 1, name: 'test1', type: 'room', ownedBy: 'me' },
       ];
       await scraper.process([], testData);
       expect(await scraper.db.table('venues').select('*')).toEqual(testData);
@@ -25,11 +25,11 @@ describe('VenuesScraper', () => {
 
     it('should merge venues if db exists', async () => {
       const existingData = [
-        { school_id: 1, name: 'test', type: 'room', owned_by: 'me' },
-        { school_id: 1, name: 'test1', type: 'room', owned_by: 'me' },
+        { school_id: 1, name: 'test', type: 'room', ownedBy: 'me' },
+        { school_id: 1, name: 'test1', type: 'room', ownedBy: 'me' },
       ];
       await scraper.db.table('venues').insert(existingData);
-      const testData = [{ school_id: 1, name: 'test', type: 'room', owned_by: 'me' }];
+      const testData = [{ school_id: 1, name: 'test', type: 'room', ownedBy: 'me' }];
       await scraper.process(existingData, testData);
       expect(await scraper.db.table('venues').select('*')).toEqual([existingData[0]]);
     });
