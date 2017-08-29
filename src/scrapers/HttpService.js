@@ -21,6 +21,7 @@ function getCacheFilePath(requestConfig) {
   // https://nodejs.org/docs/latest/api/url.html#url_url_strings_and_url_objects
   const { hostname, pathname, searchParams, href } = new URL(url, baseURL);
 
+  // Merge params from config and search params from the URL
   const keyValuePairs = new Set();
   const addKeyValuePair = (value, key) => {
     keyValuePairs.add(`${key}=${value}`);

@@ -13,10 +13,6 @@ describe('BaseTask', () => {
   });
 
   describe('constructor', () => {
-    it('should generate a log object', () => {
-      expect(base.log.fields.name).toBe('BaseTask');
-    });
-
     let env; // restore env
     beforeEach(() => {
       env = process.env.NODE_ENV;
@@ -24,6 +20,10 @@ describe('BaseTask', () => {
 
     afterEach(() => {
       process.env.NODE_ENV = env;
+    });
+
+    it('should generate a log object', () => {
+      expect(base.log.fields.name).toBe('BaseTask');
     });
 
     it('should generate log at debug level when not production', () => {
